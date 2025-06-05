@@ -49,3 +49,4 @@ dotnet run
 
 ## Warning
 This is a joke/prank program. Use responsibly and only on systems you own or have permission to run it on.
+This was inspired by the boondocks show Season 3 episode 9 "A date with the booty warrior"
