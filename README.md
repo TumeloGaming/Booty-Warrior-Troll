@@ -13,7 +13,7 @@ A C# Windows Forms application that creates a humorous sequence of dialog boxes.
 1. Open Command Prompt or PowerShell
 2. Navigate to the JokeProgram directory
 3. Run the following commands:
-
+4. Just run the build.bat file and it will be fine
 ```bash
 # Restore packages
 dotnet restore
@@ -36,7 +36,7 @@ dotnet run
 ## Features
 - Downloads audio and image files from the provided URLs
 - Displays a sequence of system-style dialog boxes
-- Offers "Easy Way" and "Hard Way" options
+- Offers "Easy Way" and "Hard Way" options with "Yes" being the Easy Way and "No" being the Hard Way
 - Hard Way: temporarily changes desktop wallpaper, plays audio 10 times, blocks input
 - Automatically cleans up downloaded files when finished
 - No permanent harm to the system
