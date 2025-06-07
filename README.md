@@ -13,6 +13,7 @@ A C# Windows Forms application that creates a humorous sequence of dialog boxes.
 1. Open Command Prompt or PowerShell
 2. Navigate to the JokeProgram directory
 3. Run the following commands:
+4. Forget all that up here just open the **Build.bat** file
 
 ```bash
 # Restore packages
@@ -49,3 +50,4 @@ dotnet run
 
 ## Warning
 This is a joke/prank program. Use responsibly and only on systems you own or have permission to run it on.
+Inspired by Boondocks Season 3 Episode 9 "A date with the booty warrior"
