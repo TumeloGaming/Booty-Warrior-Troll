@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -11,20 +12,27 @@ namespace JokeProgram
 {
     public partial class MainForm : Form
     {
-        private const string AudioUrl = "https://cdn.discordapp.com/attachments/1260985603181379647/1380155235003142154/videoplayback_OdH6xsaK.mp3?ex=6842d93a&is=684187ba&hm=e64a550df06f0db17d24463565275514b33986da626ceb886b491deb2b5c363d&";
-        private const string ImageUrl = "https://cdn.discordapp.com/attachments/1260985603181379647/1380153780020056064/image.png?ex=6842d7df&is=6841865f&hm=af582807c4ab4961458025237952722cda774a4c4dd7a1c56abf855a241f6862&";
+        private const string AudioUrl = "https://cdn.discordapp.com/attachments/1260985603181379647/1380932673773764679/videoplayback-odh6xsak-1_g83yRxrw.mp3?ex=6845ad45&is=68445bc5&hm=942098c9f5c590b22ee273425e9b478ed49f51be253334fada1133c4766ab340&";
+        private const string ImageUrl = "https://cdn.discordapp.com/attachments/1260985603181379647/1380153780020056064/image.png?ex=68457adf&is=6844295f&hm=7f03513ba4b73c89129c75d88d0447d2149e9a2e0c8603ff195c9b42f44ae783&";
 
         private const string AudioFileName = "joke_audio.mp3";
         private const string ImageFileName = "joke_image.png";
 
         private bool _allowClose = false;
         private string _userName = "";
+        private uint originalVolume;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
         [DllImport("user32.dll")]
         private static extern bool BlockInput(bool fBlockIt);
+
+        [DllImport("winmm.dll")]
+        private static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        private static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
 
         public MainForm()
         {
@@ -75,16 +83,7 @@ namespace JokeProgram
                 await DownloadFiles();
 
                 // Step 10: Final choice
-                var result = MessageBox.Show("or we can do it the hard way", "System Alert", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
-                {
-                    await DoEasyWay();
-                }
-                else
-                {
-                    await DoHardWay();
-                }
+                ShowFinalChoice();
             }
             catch (Exception ex)
             {
@@ -114,6 +113,57 @@ namespace JokeProgram
             }
         }
 
+        private void ShowFinalChoice()
+        {
+            Form choiceForm = new Form();
+            choiceForm.Text = "System Alert";
+            choiceForm.Size = new Size(400, 200);
+            choiceForm.StartPosition = FormStartPosition.CenterScreen;
+            choiceForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            choiceForm.MaximizeBox = false;
+            choiceForm.MinimizeBox = false;
+            choiceForm.TopMost = true;
+
+            Label label = new Label();
+            label.Text = "or we can do it the hard way";
+            label.Location = new Point(20, 30);
+            label.Size = new Size(350, 50);
+            label.Font = new Font("Microsoft Sans Serif", 12);
+            choiceForm.Controls.Add(label);
+
+            Button easyButton = new Button();
+            easyButton.Text = "Easy Way";
+            easyButton.Location = new Point(80, 100);
+            easyButton.Size = new Size(100, 35);
+            easyButton.Click += async (s, e) => { choiceForm.Close(); await DoEasyWay(); };
+            choiceForm.Controls.Add(easyButton);
+
+            Button hardButton = new Button();
+            hardButton.Text = "Hard Way";
+            hardButton.Location = new Point(200, 100);
+            hardButton.Size = new Size(100, 35);
+            hardButton.Click += async (s, e) => { choiceForm.Close(); await DoHardWay(); };
+            choiceForm.Controls.Add(hardButton);
+
+            choiceForm.FormClosing += async (s, e) => await DoHardWay();
+            choiceForm.ShowDialog();
+        }
+
+        private void SetVolumeToMax()
+        {
+            // Get current volume to restore later
+            waveOutGetVolume(IntPtr.Zero, out originalVolume);
+
+            // Set volume to maximum (0xFFFF for both left and right channels)
+            uint maxVolume = 0xFFFF;
+            waveOutSetVolume(IntPtr.Zero, ((uint)maxVolume & 0x0000ffff) | ((uint)maxVolume << 16));
+        }
+
+        private void RestoreOriginalVolume()
+        {
+            waveOutSetVolume(IntPtr.Zero, originalVolume);
+        }
+
         private async Task DoEasyWay()
         {
             await PlayAudio();
@@ -122,6 +172,8 @@ namespace JokeProgram
 
         private async Task DoHardWay()
         {
+            SetVolumeToMax();  // Set volume to max
+
             // Change wallpaper
             if (File.Exists(ImageFileName))
             {
@@ -187,6 +239,8 @@ namespace JokeProgram
         {
             try
             {
+                RestoreOriginalVolume();  // Restore volume
+
                 if (File.Exists(AudioFileName))
                     File.Delete(AudioFileName);
 
